@@ -9,9 +9,13 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "google-cloud-aiplatform (>=1.95.1,<2.0.0)",
-    "requests (>=2.32.3,<3.0.0)"
+    "requests (>=2.32.3,<3.0.0)",
+    "typer (>=0.16.0,<0.17.0)",
+    "rich (>=14.0.0,<15.0.0)"
 ]
 
+[tool.poetry.scripts]
+dtt = "diff2test.main:run"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
