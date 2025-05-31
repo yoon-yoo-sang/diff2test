@@ -9,10 +9,21 @@ def get_diff_between_commits(commit_a: str, commit_b: str) -> List[DiffInfo]:
     """
     Gets the diff for Python files between two specified commit hashes.
     """
-    print(f"[GitHandler] Getting diff between {commit_a} and {commit_b} for Python files...")
+    print(
+        f"[GitHandler] Getting diff between {commit_a} and {commit_b} for Python files..."
+    )
     # The '--' is important to separate revisions from paths if paths could be ambiguous.
     # '*.py' ensures we only get diffs for Python files.
-    git_command = ["git", "diff", "--unified=3", commit_a, commit_b, "--", "*.py"]
+    git_command = [
+        "git",
+        "diff",
+        "--unified=3",
+        commit_a,
+        commit_b,
+        "--",
+        "*.py",
+        ":(exclude)**/test_*.py",
+    ]
     raw_diff = _run_git_command(git_command)
     return _parse_diff_output(raw_diff)
 
@@ -22,9 +33,19 @@ def get_current_changes() -> List[DiffInfo]:
     Gets the diff for Python files from HEAD to the current working directory/staging area.
     This shows all uncommitted changes (staged and unstaged combined) for Python files.
     """
-    print(f"[GitHandler] Getting current uncommitted changes (HEAD vs. working tree/index) for Python files...")
+    print(
+        f"[GitHandler] Getting current uncommitted changes (HEAD vs. working tree/index) for Python files..."
+    )
     # 'git diff HEAD' shows changes in the working tree and staging area relative to HEAD.
-    git_command = ["git", "diff", "--unified=3", "HEAD", "--", "*.py"]
+    git_command = [
+        "git",
+        "diff",
+        "--unified=3",
+        "HEAD",
+        "--",
+        "*.py",
+        ":(exclude)**/test_*.py",
+    ]
     raw_diff = _run_git_command(git_command)
     return _parse_diff_output(raw_diff)
 
@@ -42,7 +63,7 @@ def _run_git_command(command: List[str]) -> str:
             capture_output=True,
             text=True,
             check=True,  # Raises CalledProcessError for non-zero exit codes
-            encoding='utf-8'  # Specify encoding for consistency
+            encoding="utf-8",  # Specify encoding for consistency
         )
         return result.stdout
     except FileNotFoundError:
@@ -69,7 +90,9 @@ def _parse_diff_output(raw_diff_output: str) -> List[DiffInfo]:
     # We add a newline at the beginning to make the split consistent
     # in case the raw_diff_output doesn't start with one.
     # Then split by this delimiter. The first element of the split will be empty.
-    individual_file_diffs = ("\n" + raw_diff_output.strip()).split("\ndiff --git a/")[1:]
+    individual_file_diffs = ("\n" + raw_diff_output.strip()).split("\ndiff --git a/")[
+        1:
+    ]
 
     for file_diff_section in individual_file_diffs:
         lines = file_diff_section.strip().splitlines()
@@ -85,10 +108,10 @@ def _parse_diff_output(raw_diff_output: str) -> List[DiffInfo]:
 
         # Try to find file paths from '--- a/...' and '+++ b/...' lines
         for line_content in lines:
-            if line_content.startswith('--- a/'):
-                file_path_a = line_content[len('--- a/'):].strip()
-            elif line_content.startswith('+++ b/'):
-                file_path_b = line_content[len('+++ b/'):].strip()
+            if line_content.startswith("--- a/"):
+                file_path_a = line_content[len("--- a/") :].strip()
+            elif line_content.startswith("+++ b/"):
+                file_path_b = line_content[len("+++ b/") :].strip()
 
             # Optimization: if both found relatively early, can break.
             # However, some diffs (e.g. binary) might not have these lines in the same way,
@@ -101,13 +124,19 @@ def _parse_diff_output(raw_diff_output: str) -> List[DiffInfo]:
         # We prefer path_b if it's a valid path, otherwise path_a.
         # The '-- '*.py'' filter in the git command itself helps ensure we only get Python files.
         effective_path = None
-        if file_path_b and file_path_b != '/dev/null':
+        if file_path_b and file_path_b != "/dev/null":
             effective_path = file_path_b
-        elif file_path_a and file_path_a != '/dev/null':  # Covers deleted files
+        elif file_path_a and file_path_a != "/dev/null":  # Covers deleted files
             effective_path = file_path_a
 
-        if effective_path:  # The '*.py' filter is in the git command, so we assume it's a .py file
-            diffs_info.append(DiffInfo(file_path=effective_path, diff_content=full_diff_content_for_ai))
+        if (
+            effective_path
+        ):  # The '*.py' filter is in the git command, so we assume it's a .py file
+            diffs_info.append(
+                DiffInfo(
+                    file_path=effective_path, diff_content=full_diff_content_for_ai
+                )
+            )
         # else:
         # Could log if a diff section couldn't be parsed for a file path,
         # but the git filter should prevent non-.py files from appearing.
@@ -154,4 +183,6 @@ if __name__ == "__main__":
     #         print(f"No Python file changes found between {commit_a_hash} and {commit_b_hash}.")
     # except Exception as e:
     #     print(f"Error in get_diff_between_commits(): {e}")
-    print("\nNote: For 'get_diff_between_commits' test, uncomment and provide valid commit hashes.")
+    print(
+        "\nNote: For 'get_diff_between_commits' test, uncomment and provide valid commit hashes."
+    )
