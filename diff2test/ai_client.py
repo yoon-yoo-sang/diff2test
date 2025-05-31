@@ -138,7 +138,7 @@ if __name__ == "__main__":
     test_ai_config = AIConfig(
         project_id="YOUR_GCP_PROJECT_ID",  # <--- REPLACE THIS
         region="us-central1",  # <--- REPLACE THIS (if needed for your model)
-        model_name="gemini-1.0-pro-001",  # Or another model like "gemini-1.5-flash-001"
+        model_name="gemini-2.0-flash-001",
     )
 
     # Ensure the configuration has valid values before running
