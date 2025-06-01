@@ -1,34 +1,30 @@
-# diff2test/git_handler.py
+import glob
 import subprocess
-from typing import List
+from typing import List, Optional
+import os # Added for path manipulation
 
 from diff2test.models import DiffInfo
 
 
-def get_diff_between_commits(commit_a: str, commit_b: str) -> List[DiffInfo]:
+def get_diff_between_commits(commit_a: str, commit_b: str, target: Optional[str]) -> List[DiffInfo]:
     """
     Gets the diff for Python files between two specified commit hashes.
     """
     print(
         f"[GitHandler] Getting diff between {commit_a} and {commit_b} for Python files..."
     )
-    # The '--' is important to separate revisions from paths if paths could be ambiguous.
-    # '*.py' ensures we only get diffs for Python files.
-    git_command = [
-        "git",
-        "diff",
-        "--unified=3",
-        commit_a,
-        commit_b,
-        "--",
-        "*.py",
-        ":(exclude)**/test_*.py",
-    ]
+    git_command_base = ["git", "diff", "--unified=3", commit_a, commit_b]
+    
+    effective_pathspecs = _get_effective_pathspecs(target)
+    git_command = git_command_base
+    if effective_pathspecs:
+        git_command.extend(["--"] + effective_pathspecs)
+
     raw_diff = _run_git_command(git_command)
     return _parse_diff_output(raw_diff)
 
 
-def get_current_changes() -> List[DiffInfo]:
+def get_current_changes(target: Optional[str]) -> List[DiffInfo]:
     """
     Gets the diff for Python files from HEAD to the current working directory/staging area.
     This shows all uncommitted changes (staged and unstaged combined) for Python files.
@@ -36,16 +32,13 @@ def get_current_changes() -> List[DiffInfo]:
     print(
         f"[GitHandler] Getting current uncommitted changes (HEAD vs. working tree/index) for Python files..."
     )
-    # 'git diff HEAD' shows changes in the working tree and staging area relative to HEAD.
-    git_command = [
-        "git",
-        "diff",
-        "--unified=3",
-        "HEAD",
-        "--",
-        "*.py",
-        ":(exclude)**/test_*.py",
-    ]
+    git_command_base = ["git", "diff", "--unified=3", "HEAD"]
+    
+    effective_pathspecs = _get_effective_pathspecs(target)
+    git_command = git_command_base
+    if effective_pathspecs:
+        git_command.extend(["--"] + effective_pathspecs)
+
     raw_diff = _run_git_command(git_command)
     return _parse_diff_output(raw_diff)
 
@@ -129,9 +122,7 @@ def _parse_diff_output(raw_diff_output: str) -> List[DiffInfo]:
         elif file_path_a and file_path_a != "/dev/null":  # Covers deleted files
             effective_path = file_path_a
 
-        if (
-            effective_path
-        ):  # The '*.py' filter is in the git command, so we assume it's a .py file
+        if effective_path:  # The '*.py' filter is in the git command, so we assume it's a .py file
             diffs_info.append(
                 DiffInfo(
                     file_path=effective_path, diff_content=full_diff_content_for_ai
@@ -142,6 +133,51 @@ def _parse_diff_output(raw_diff_output: str) -> List[DiffInfo]:
         # but the git filter should prevent non-.py files from appearing.
 
     return diffs_info
+
+
+def _get_effective_pathspecs(target: Optional[str]) -> List[str]:
+    """
+    Constructs pathspecs for git diff.
+    If target is provided, patterns apply within that target (AND logic).
+    Otherwise, patterns apply globally.
+    """
+    pathspecs = []
+
+    # General patterns for Python files and excluding test files
+    python_files_glob = "**/*.py"  # Recursive from the context
+    exclude_tests_glob = "**/test_*.py"  # Recursive from the context, matches test_*.py
+
+    if target:
+        clean_target = target.rstrip('/')  # Remove trailing slash for consistency
+
+        # Heuristic: if target itself ends with .py, treat it as a specific file target.
+        # Otherwise, treat it as a directory/prefix for other patterns.
+        if clean_target.endswith(".py"):
+            # Target is a specific Python file.
+            # Add the file itself as a pathspec.
+            pathspecs.append(clean_target)
+            # Add the general exclusion. If clean_target is a test file, it will be excluded by Git.
+            pathspecs.append(f":(exclude){exclude_tests_glob}")
+        else:
+            # Target is a directory or a non-Python file.
+            # If clean_target is empty (e.g., target was "/" or just spaces), default to global.
+            if not clean_target.strip():  # Check if effectively empty
+                pathspecs.append(python_files_glob)
+                pathspecs.append(f":(exclude){exclude_tests_glob}")
+            else:
+                # Target is treated as a directory prefix.
+                # Python files within this directory:
+                cwd = os.getcwd()
+                files_to_diff = glob.glob(f"{clean_target}/{python_files_glob}", recursive=True, root_dir=cwd)
+                pathspecs += files_to_diff
+                # Exclude test files within this directory:
+                pathspecs.append(f":(exclude){clean_target}/{exclude_tests_glob}")
+    else:
+        # No target specified, use global recursive patterns.
+        pathspecs.append(python_files_glob)
+        pathspecs.append(f":(exclude){exclude_tests_glob}")
+
+    return pathspecs
 
 
 # Example usage (for testing this module directly):
@@ -159,8 +195,6 @@ if __name__ == "__main__":
         if current_diffs:
             for diff_info in current_diffs:
                 print(f"\nFile: {diff_info.file_path}")
-                print("Diff Content (first 150 chars):")
-                print(diff_info.diff_content[:300] + "...")
         else:
             print("No current Python file changes found.")
     except Exception as e:

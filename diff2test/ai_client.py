@@ -60,7 +60,6 @@ def generate_text_from_prompt(prompt: str, ai_config: AIConfig) -> str | None:
         # top_k=40
     )
 
-    print(f"[AIClient] Sending prompt to model (first 100 chars): '{prompt[:100]}...'")
     try:
         response = model.generate_content(
             prompt,
@@ -69,7 +68,6 @@ def generate_text_from_prompt(prompt: str, ai_config: AIConfig) -> str | None:
             # stream=False # Set to True if you want to stream the response
         )
 
-        print("[AIClient] Received response from model.")
         # Accessing the text:
         # The exact way to get text can vary slightly. `response.text` is often the simplest.
         # If `response.text` is not available or empty, try candidates.

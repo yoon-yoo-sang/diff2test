@@ -1,5 +1,3 @@
-# diff2test/file_writer.py
-import os
 from pathlib import Path
 
 

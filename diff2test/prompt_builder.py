@@ -1,4 +1,4 @@
-from .models import DiffInfo  # Assuming DiffInfo is in models.py from the same package
+from diff2test.models import DiffInfo
 
 DEFAULT_TEST_FRAMEWORK = "pytest"
 
@@ -40,7 +40,7 @@ def create_test_prompt_for_diff(
         # Future prompt enhancements could include:
         # "- Consider edge cases related to the changes."
         # "- If applicable, suggest tests for both positive and negative scenarios."
-        # "- Ensure tests are independent and can be run убийств (idempotent if possible)."
+        # "- Ensure tests are independent and can be run (idempotent if possible)."
     ]
 
     return "\n".join(prompt_lines)

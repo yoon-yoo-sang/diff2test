@@ -1,4 +1,3 @@
-# diff2test/cli_parser.py
 import typer
 from typing import Optional
 
@@ -64,6 +63,14 @@ def cli_current(
             is_flag=True,
         ),
     ] = False,
+    target: Annotated[
+        Optional[str],
+        typer.Option(
+            "--target",
+            "-t",
+            help="Target file or directory to analyze (default: current working directory).",
+        ),
+    ] = None,  # Default to current working directory
 ):
     """
     dtt current: Analyzes changes from the last commit to the current working directory/staging area.
@@ -86,6 +93,7 @@ def cli_current(
         region=region,
         output_dir=output_dir,
         interactive=interactive,
+        target=target,
     )
     print(f"CLI: Task complete. Result:\n{result_message}")
 
@@ -135,6 +143,14 @@ def cli_range(
             is_flag=True,
         ),
     ] = False,
+    target: Annotated[
+        Optional[str],
+        typer.Option(
+            "--target",
+            "-t",
+            help="Target file or directory to analyze (default: current working directory).",
+        ),
+    ] = None,  # Default to current working directory
 ):
     """
     dtt range <COMMIT_A> [COMMIT_B]: Analyzes changes between commit_A and commit_B.
@@ -157,6 +173,7 @@ def cli_range(
         region=region,
         output_dir=output_dir,
         interactive=interactive,
+        target=target,
     )
     print(f"CLI: Task complete. Result:\n{result_message}")
 

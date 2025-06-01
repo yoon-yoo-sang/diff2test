@@ -21,7 +21,7 @@ def extract_python_code_from_response(ai_response: str) -> str | None:
         print("[ResponseParser] Received empty AI response.")
         return None
 
-    if ai_response == "NO_TESTS_NEEDED":
+    if ai_response.strip() == "NO_TESTS_NEEDED":
         print("[ResponseParser] AI response indicates no tests needed.")
         return None
 

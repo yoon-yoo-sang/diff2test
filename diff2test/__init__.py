@@ -17,15 +17,16 @@ __all__ = [
 def process_current_changes(
     project_id: str | None,
     region: str | None,
-    output_dir=None,
+    output_dir: Optional[str] = None,
     interactive: bool = False,
+    target: Optional[str] = None,
 ):
     """
     Generates tests for changes from the last commit to the current state (simulation).
     """
     print(f"[Library] Processing current changes...")
     print(f"[Library] Using Vertex AI Project ID: {project_id}, Region: {region}")
-    diff_infos = get_current_changes()
+    diff_infos = get_current_changes(target=target)
     _process_diff_infos(project_id, region, diff_infos, output_dir, interactive)
 
 
@@ -34,15 +35,16 @@ def process_commit_range(
     commit_b: str,
     project_id: str | None,
     region: str | None,
-    output_dir=None,
+    output_dir: Optional[str] = None,
     interactive: bool = False,
+    target: Optional[str] = None,
 ):
     """
     Generates tests for changes between two commits (simulation).
     """
     print(f"[Library] Processing changes between {commit_a} and {commit_b}...")
     print(f"[Library] Using Vertex AI Project ID: {project_id}, Region: {region}")
-    diff_infos = get_diff_between_commits(commit_a, commit_b)
+    diff_infos = get_diff_between_commits(commit_a, commit_b, target=target)
     _process_diff_infos(project_id, region, diff_infos, output_dir, interactive)
 
 
@@ -50,7 +52,7 @@ def _process_diff_infos(
     project_id: str,
     region: str,
     diff_infos: List[DiffInfo],
-    output_dir=None,
+    output_dir: str | None = None,
     interactive: bool = False,
 ):
     """
@@ -112,7 +114,7 @@ def orchestrate_test_generation(
 
         if generated_code:
             processed_files_count += 1
-            if output_dir:  # 파일 저장 옵션이 주어진 경우
+            if output_dir:
                 saved_path = save_test_code_to_file(
                     diff_info.file_path, generated_code, output_dir
                 )
