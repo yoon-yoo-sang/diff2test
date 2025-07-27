@@ -8,6 +8,7 @@ from vertexai.generative_models import (
 )
 from google.api_core import exceptions as google_exceptions  # For specific API errors
 
+from diff2test.logger import logger
 from .models import AIConfig  # Assuming AIConfig is in models.py
 
 # It's generally good practice to initialize Vertex AI once if possible,
@@ -32,15 +33,15 @@ def generate_text_from_prompt(prompt: str, ai_config: AIConfig) -> str | None:
     except Exception as e:
         # Initialization already prints an error, so we just return None here
         # or re-raise if a critical failure should halt the program
-        print(f"[AIClient] Halting due to Vertex AI initialization failure: {e}")
+        logger(f"[AIClient] Halting due to Vertex AI initialization failure: {e}")
         return None
 
-    print(f"[AIClient] Attempting to load model: {ai_config.model_name}")
+    logger(f"[AIClient] Attempting to load model: {ai_config.model_name}")
     try:
         model = GenerativeModel(ai_config.model_name)
-        print(f"[AIClient] Model '{ai_config.model_name}' loaded.")
+        logger(f"[AIClient] Model '{ai_config.model_name}' loaded.")
     except Exception as e:
-        print(f"[AIClient] Error loading model '{ai_config.model_name}': {e}")
+        logger(f"[AIClient] Error loading model '{ai_config.model_name}': {e}")
         return None
 
     # Configure safety settings to be less restrictive for code generation if needed.
@@ -81,28 +82,28 @@ def generate_text_from_prompt(prompt: str, ai_config: AIConfig) -> str | None:
                 if hasattr(part, "text")
             )
         else:
-            print(
+            logger(
                 "[AIClient] No text content found in the model's response or unexpected structure."
             )
-            print(f"[AIClient] Full response object: {response}")
+            logger(f"[AIClient] Full response object: {response}")
             return None
 
     except google_exceptions.PermissionDenied as e:
-        print(
+        logger(
             f"[AIClient] Permission Denied for Vertex AI. Ensure API is enabled and credentials are correct: {e}"
         )
     except google_exceptions.NotFound as e:
-        print(
+        logger(
             f"[AIClient] Model or resource not found. Check model name and region: {e}"
         )
     except google_exceptions.ResourceExhausted as e:
-        print(f"[AIClient] Vertex AI resource quota exhausted: {e}")
+        logger(f"[AIClient] Vertex AI resource quota exhausted: {e}")
     except google_exceptions.InvalidArgument as e:
-        print(
+        logger(
             f"[AIClient] Invalid argument to Vertex AI API (check prompt, model, or safety settings): {e}"
         )
     except Exception as e:
-        print(
+        logger(
             f"[AIClient] An unexpected error occurred while communicating with Vertex AI: {e}"
         )
 
@@ -116,14 +117,14 @@ def _initialize_vertex_ai(ai_config: AIConfig):
     config_tuple = (ai_config.project_id, ai_config.region)
     if config_tuple not in _vertex_ai_initialized_configs:
         try:
-            print(
+            logger(
                 f"[AIClient] Initializing Vertex AI for project: {ai_config.project_id}, region: {ai_config.region}"
             )
             vertexai.init(project=ai_config.project_id, location=ai_config.region)
             _vertex_ai_initialized_configs.add(config_tuple)
-            print(f"[AIClient] Vertex AI initialized successfully.")
+            logger(f"[AIClient] Vertex AI initialized successfully.")
         except Exception as e:
-            print(f"[AIClient] Critical error initializing Vertex AI: {e}")
+            logger(f"[AIClient] Critical error initializing Vertex AI: {e}")
             # Depending on the application, you might want to raise this
             # or handle it in a way that subsequent calls will also fail clearly.
             raise  # Re-raise for now, so the caller knows init failed.
@@ -141,36 +142,36 @@ if __name__ == "__main__":
 
     # Ensure the configuration has valid values before running
     if "YOUR_GCP_PROJECT_ID" in test_ai_config.project_id:
-        print(
+        logger(
             "Please replace 'YOUR_GCP_PROJECT_ID' in the test_ai_config with your actual GCP Project ID."
         )
     else:
-        print(
+        logger(
             f"\n--- Testing AI Client with config: Project={test_ai_config.project_id}, Region={test_ai_config.region}, Model={test_ai_config.model_name} ---"
         )
 
         simple_prompt = "What is pytest in Python? Explain in one short sentence."
-        print(f"\nTest 1: Simple explanation prompt: '{simple_prompt}'")
+        logger(f"\nTest 1: Simple explanation prompt: '{simple_prompt}'")
         response_text = generate_text_from_prompt(simple_prompt, test_ai_config)
         if response_text:
-            print("\n[AIClient Test] Model Response:")
-            print(response_text)
+            logger("\n[AIClient Test] Model Response:")
+            logger(response_text)
         else:
-            print("\n[AIClient Test] Failed to get a response for the simple prompt.")
+            logger("\n[AIClient Test] Failed to get a response for the simple prompt.")
 
-        print("-" * 20)
+        logger("-" * 20)
 
         code_prompt = (
             "You are a Python testing expert.\n"
             "Write a simple pytest function to test `def add(a, b): return a + b`.\n"
             "Provide only the Python code for the test."
         )
-        print(f"\nTest 2: Code generation prompt: '{code_prompt[:50]}...'")
+        logger(f"\nTest 2: Code generation prompt: '{code_prompt[:50]}...'")
         code_response_text = generate_text_from_prompt(code_prompt, test_ai_config)
         if code_response_text:
-            print("\n[AIClient Test] Model Response (Code):")
-            print(code_response_text)
+            logger("\n[AIClient Test] Model Response (Code):")
+            logger(code_response_text)
         else:
-            print(
+            logger(
                 "\n[AIClient Test] Failed to get a response for the code generation prompt."
             )

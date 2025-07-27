@@ -1,3 +1,4 @@
+from diff2test.logger import logger
 from diff2test.models import DiffInfo
 
 DEFAULT_TEST_FRAMEWORK = "pytest"
@@ -68,10 +69,10 @@ if __name__ == "__main__":
         ),
     )
 
-    print("--- Generating Prompt for Pytest ---")
+    logger("--- Generating Prompt for Pytest ---")
     pytest_prompt = create_test_prompt_for_diff(sample_diff_info)
-    print(pytest_prompt)
+    logger(pytest_prompt)
 
-    # print("\n--- Generating Prompt for Unittest (example) ---")
+    # logger("\n--- Generating Prompt for Unittest (example) ---")
     # unittest_prompt = create_test_prompt_for_diff(sample_diff_info, test_framework="unittest")
-    # print(unittest_prompt)
+    # logger(unittest_prompt)

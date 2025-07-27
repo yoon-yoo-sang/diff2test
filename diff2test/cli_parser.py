@@ -8,6 +8,7 @@ from typing_extensions import (
 )  # For compatibility with older Python versions (e.g., 3.8). Or use `from typing import Annotated` for Python 3.9+.
 
 from diff2test import process_current_changes, process_commit_range
+from diff2test.logger import logger
 
 # Import placeholder functions from the library's __init__.py
 
@@ -75,9 +76,9 @@ def cli_current(
     """
     dtt current: Analyzes changes from the last commit to the current working directory/staging area.
     """
-    print(f"CLI: 'current' command invoked.")
+    logger(f"CLI: 'current' command invoked.")
     if not project_id or not region:
-        print(
+        logger(
             "Vertex AI Project ID and Region are required. "
             "Use --project and --region options or environment variables (DTT_PROJECT_ID, DTT_REGION)."
         )
@@ -87,7 +88,7 @@ def cli_current(
         # Consider adding: raise typer.Exit(code=1)
         return
 
-    print(f"CLI: Project ID: {project_id}, Region: {region}")
+    logger(f"CLI: Project ID: {project_id}, Region: {region}")
     result_message = process_current_changes(
         project_id=project_id,
         region=region,
@@ -95,7 +96,7 @@ def cli_current(
         interactive=interactive,
         target=target,
     )
-    print(f"CLI: Task complete. Result:\n{result_message}")
+    logger(f"CLI: Task complete. Result:\n{result_message}")
 
 
 @app.command(
@@ -156,16 +157,16 @@ def cli_range(
     dtt range <COMMIT_A> [COMMIT_B]: Analyzes changes between commit_A and commit_B.
     If COMMIT_B is omitted, HEAD will be used.
     """
-    print(f"CLI: 'range' command invoked. Range: {commit_a}..{commit_b}")
+    logger(f"CLI: 'range' command invoked. Range: {commit_a}..{commit_b}")
     if not project_id or not region:
-        print(
+        logger(
             "Vertex AI Project ID and Region are required. "
             "Use --project and --region options or environment variables (DTT_PROJECT_ID, DTT_REGION)."
         )
         # Consider adding: raise typer.Exit(code=1)
         return
 
-    print(f"CLI: Project ID: {project_id}, Region: {region}")
+    logger(f"CLI: Project ID: {project_id}, Region: {region}")
     result_message = process_commit_range(
         commit_a,
         commit_b,
@@ -175,7 +176,7 @@ def cli_range(
         interactive=interactive,
         target=target,
     )
-    print(f"CLI: Task complete. Result:\n{result_message}")
+    logger(f"CLI: Task complete. Result:\n{result_message}")
 
 
 # Used for testing when running this file directly

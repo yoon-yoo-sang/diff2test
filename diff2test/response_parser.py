@@ -1,6 +1,8 @@
 # diff2test/response_parser.py
 import re
 
+from diff2test.logger import logger
+
 
 def extract_python_code_from_response(ai_response: str) -> str | None:
     """
@@ -18,11 +20,11 @@ def extract_python_code_from_response(ai_response: str) -> str | None:
         The extracted Python code as a string, or None if no suitable code is found.
     """
     if not ai_response:
-        print("[ResponseParser] Received empty AI response.")
+        logger("[ResponseParser] Received empty AI response.")
         return None
 
     if ai_response.strip() == "NO_TESTS_NEEDED":
-        print("[ResponseParser] AI response indicates no tests needed.")
+        logger("[ResponseParser] AI response indicates no tests needed.")
         return None
 
     # Regex to find Python code blocks fenced by triple backticks.
@@ -38,7 +40,7 @@ def extract_python_code_from_response(ai_response: str) -> str | None:
 
     if match:
         extracted_code = match.group(1).strip()
-        print(
+        logger(
             f"[ResponseParser] Extracted fenced code block (length: {len(extracted_code)})."
         )
         return extracted_code
@@ -47,12 +49,12 @@ def extract_python_code_from_response(ai_response: str) -> str | None:
         # the entire response might be the code. This is a heuristic.
         # We check if "```" is absent to avoid partial fence matching.
         if "```" not in ai_response and ai_response.strip():
-            print(
+            logger(
                 "[ResponseParser] No fenced code block found. Assuming entire response is code as a fallback."
             )
             return ai_response.strip()
 
-        print(
+        logger(
             "[ResponseParser] No Python code block found or response format not recognized."
         )
         return None
@@ -60,7 +62,7 @@ def extract_python_code_from_response(ai_response: str) -> str | None:
 
 # --- Example Usage (for testing this module directly) ---
 if __name__ == "__main__":
-    print("--- Testing Response Parser ---")
+    logger("--- Testing Response Parser ---")
 
     test_cases = [
         {

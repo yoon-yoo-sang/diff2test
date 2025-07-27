@@ -3,6 +3,7 @@ from typing import List, Optional
 from diff2test.ai_client import generate_text_from_prompt
 from diff2test.file_writer import save_test_code_to_file
 from diff2test.git_handler import get_current_changes, get_diff_between_commits
+from diff2test.logger import logger
 from diff2test.models import AIConfig, DiffInfo
 from diff2test.prompt_builder import create_test_prompt_for_diff
 from diff2test.response_parser import extract_python_code_from_response
@@ -24,8 +25,8 @@ def process_current_changes(
     """
     Generates tests for changes from the last commit to the current state (simulation).
     """
-    print(f"[Library] Processing current changes...")
-    print(f"[Library] Using Vertex AI Project ID: {project_id}, Region: {region}")
+    logger(f"[Library] Processing current changes...")
+    logger(f"[Library] Using Vertex AI Project ID: {project_id}, Region: {region}")
     diff_infos = get_current_changes(target=target)
     _process_diff_infos(project_id, region, diff_infos, output_dir, interactive)
 
@@ -42,8 +43,8 @@ def process_commit_range(
     """
     Generates tests for changes between two commits (simulation).
     """
-    print(f"[Library] Processing changes between {commit_a} and {commit_b}...")
-    print(f"[Library] Using Vertex AI Project ID: {project_id}, Region: {region}")
+    logger(f"[Library] Processing changes between {commit_a} and {commit_b}...")
+    logger(f"[Library] Using Vertex AI Project ID: {project_id}, Region: {region}")
     diff_infos = get_diff_between_commits(commit_a, commit_b, target=target)
     _process_diff_infos(project_id, region, diff_infos, output_dir, interactive)
 
@@ -79,15 +80,15 @@ def orchestrate_test_generation(
     saved_file_paths = []
 
     for i, diff_info in enumerate(diff_infos):
-        print(
+        logger(
             f"\n--- Processing file {i + 1}/{len(diff_infos)}: {diff_info.file_path} ---"
         )
 
         if interactive:
-            print("\nDiff content:")
-            print("--------------------------------------------------")
-            print(diff_info.diff_content)
-            print("--------------------------------------------------")
+            logger("\nDiff content:")
+            logger("--------------------------------------------------")
+            logger(diff_info.diff_content)
+            logger("--------------------------------------------------")
 
             while True:
                 choice = input(
@@ -97,13 +98,13 @@ def orchestrate_test_generation(
                     if choice == "":
                         choice = "n"
                     break
-                print("Invalid input. Please enter 'y', 'n', or 'q'.")
+                logger("Invalid input. Please enter 'y', 'n', or 'q'.")
 
             if choice == "n":
-                print(f"Skipping test generation for {diff_info.file_path}")
+                logger(f"Skipping test generation for {diff_info.file_path}")
                 continue
             elif choice == "q":
-                print("Operation aborted by user.")
+                logger("Operation aborted by user.")
                 break
 
         prompt = create_test_prompt_for_diff(diff_info)
@@ -121,16 +122,16 @@ def orchestrate_test_generation(
                 if saved_path:
                     saved_file_paths.append(saved_path)
             else:
-                print(f"\n# Suggested tests for: {diff_info.file_path}")
-                print("# --------------------------------------------------")
-                print(generated_code)
-                print("# --------------------------------------------------\n")
+                logger(f"\n# Suggested tests for: {diff_info.file_path}")
+                logger("# --------------------------------------------------")
+                logger(generated_code)
+                logger("# --------------------------------------------------\n")
         else:
-            print(f"No test code could be generated for: {diff_info.file_path}")
+            logger(f"No test code could be generated for: {diff_info.file_path}")
 
     if output_dir:
-        print(
+        logger(
             f"\nProcessed {processed_files_count} files. Tests saved to '{output_dir}'."
         )
     else:
-        print(f"\nProcessed {processed_files_count} files.")
+        logger(f"\nProcessed {processed_files_count} files.")

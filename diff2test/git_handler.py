@@ -1,8 +1,9 @@
 import glob
 import subprocess
 from typing import List, Optional
-import os # Added for path manipulation
+import os
 
+from diff2test.logger import logger
 from diff2test.models import DiffInfo
 
 
@@ -10,7 +11,7 @@ def get_diff_between_commits(commit_a: str, commit_b: str, target: Optional[str]
     """
     Gets the diff for Python files between two specified commit hashes.
     """
-    print(
+    logger(
         f"[GitHandler] Getting diff between {commit_a} and {commit_b} for Python files..."
     )
     git_command_base = ["git", "diff", "--unified=3", commit_a, commit_b]
@@ -29,7 +30,7 @@ def get_current_changes(target: Optional[str]) -> List[DiffInfo]:
     Gets the diff for Python files from HEAD to the current working directory/staging area.
     This shows all uncommitted changes (staged and unstaged combined) for Python files.
     """
-    print(
+    logger(
         f"[GitHandler] Getting current uncommitted changes (HEAD vs. working tree/index) for Python files..."
     )
     git_command_base = ["git", "diff", "--unified=3", "HEAD"]
@@ -61,12 +62,12 @@ def _run_git_command(command: List[str]) -> str:
         return result.stdout
     except FileNotFoundError:
         # This happens if 'git' command is not found
-        print("Error: 'git' command not found. Is Git installed and in your PATH?")
+        logger("Error: 'git' command not found. Is Git installed and in your PATH?")
         raise
     except subprocess.CalledProcessError as e:
-        print(f"Error executing Git command: {' '.join(command)}")
-        print(f"Return code: {e.returncode}")
-        print(f"Stderr: {e.stderr.strip()}")
+        logger(f"Error executing Git command: {' '.join(command)}")
+        logger(f"Return code: {e.returncode}")
+        logger(f"Stderr: {e.stderr.strip()}")
         raise
 
 
@@ -182,41 +183,41 @@ def _get_effective_pathspecs(target: Optional[str]) -> List[str]:
 
 # Example usage (for testing this module directly):
 if __name__ == "__main__":
-    print("--- Testing Git Handler ---")
+    logger("--- Testing Git Handler ---")
 
     # Before running, make sure you are in a git repository
     # and have some uncommitted changes to Python files for get_current_changes()
     # or valid commit hashes for get_diff_between_commits().
 
     # Test 1: Current Changes
-    print("\nTesting get_current_changes():")
+    logger("\nTesting get_current_changes():")
     try:
         current_diffs = get_current_changes()
         if current_diffs:
             for diff_info in current_diffs:
-                print(f"\nFile: {diff_info.file_path}")
+                logger(f"\nFile: {diff_info.file_path}")
         else:
-            print("No current Python file changes found.")
+            logger("No current Python file changes found.")
     except Exception as e:
-        print(f"Error in get_current_changes(): {e}")
+        logger(f"Error in get_current_changes(): {e}")
 
     # Test 2: Diff between two commits
     # Replace 'COMMIT_A' and 'COMMIT_B' with actual commit hashes from your repository
     # For example, to get diff between HEAD~1 and HEAD:
     # commit_a_hash = "HEAD~1"
     # commit_b_hash = "HEAD"
-    # print(f"\nTesting get_diff_between_commits({commit_a_hash}, {commit_b_hash}):")
+    # logger(f"\nTesting get_diff_between_commits({commit_a_hash}, {commit_b_hash}):")
     # try:
     #     commit_diffs = get_diff_between_commits(commit_a_hash, commit_b_hash)
     #     if commit_diffs:
     #         for diff_info in commit_diffs:
-    #             print(f"\nFile: {diff_info.file_path}")
-    #             print("Diff Content (first 150 chars):")
-    #             print(diff_info.diff_content[:150] + "...")
+    #             logger(f"\nFile: {diff_info.file_path}")
+    #             logger("Diff Content (first 150 chars):")
+    #             logger(diff_info.diff_content[:150] + "...")
     #     else:
-    #         print(f"No Python file changes found between {commit_a_hash} and {commit_b_hash}.")
+    #         logger(f"No Python file changes found between {commit_a_hash} and {commit_b_hash}.")
     # except Exception as e:
-    #     print(f"Error in get_diff_between_commits(): {e}")
-    print(
+    #     logger(f"Error in get_diff_between_commits(): {e}")
+    logger(
         "\nNote: For 'get_diff_between_commits' test, uncomment and provide valid commit hashes."
     )
