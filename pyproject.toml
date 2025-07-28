@@ -1,7 +1,7 @@
 [project]
 name = "diff2test"
 version = "0.1.0"
-description = ""
+description = "AI-Powered Unit Test Generation from Git Diffs"
 authors = [
     {name = "yoon-yoo-sang",email = "yyss6188@naver.com"}
 ]
