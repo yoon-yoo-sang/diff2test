@@ -61,7 +61,6 @@ def cli_current(
             "--interactive",
             "-i",
             help="Run in interactive mode (default: False).",
-            is_flag=True,
         ),
     ] = False,
     target: Annotated[
@@ -76,9 +75,9 @@ def cli_current(
     """
     dtt current: Analyzes changes from the last commit to the current working directory/staging area.
     """
-    logger(f"CLI: 'current' command invoked.")
+    logger.info(f"CLI: 'current' command invoked.")
     if not project_id or not region:
-        logger(
+        logger.info(
             "Vertex AI Project ID and Region are required. "
             "Use --project and --region options or environment variables (DTT_PROJECT_ID, DTT_REGION)."
         )
@@ -88,7 +87,7 @@ def cli_current(
         # Consider adding: raise typer.Exit(code=1)
         return
 
-    logger(f"CLI: Project ID: {project_id}, Region: {region}")
+    logger.info(f"CLI: Project ID: {project_id}, Region: {region}")
     result_message = process_current_changes(
         project_id=project_id,
         region=region,
@@ -96,7 +95,7 @@ def cli_current(
         interactive=interactive,
         target=target,
     )
-    logger(f"CLI: Task complete. Result:\n{result_message}")
+    logger.info(f"CLI: Task complete. Result:\n{result_message}")
 
 
 @app.command(
@@ -141,7 +140,6 @@ def cli_range(
             "--interactive",
             "-i",
             help="Run in interactive mode (default: False).",
-            is_flag=True,
         ),
     ] = False,
     target: Annotated[
@@ -157,16 +155,16 @@ def cli_range(
     dtt range <COMMIT_A> [COMMIT_B]: Analyzes changes between commit_A and commit_B.
     If COMMIT_B is omitted, HEAD will be used.
     """
-    logger(f"CLI: 'range' command invoked. Range: {commit_a}..{commit_b}")
+    logger.info(f"CLI: 'range' command invoked. Range: {commit_a}..{commit_b}")
     if not project_id or not region:
-        logger(
+        logger.info(
             "Vertex AI Project ID and Region are required. "
             "Use --project and --region options or environment variables (DTT_PROJECT_ID, DTT_REGION)."
         )
         # Consider adding: raise typer.Exit(code=1)
         return
 
-    logger(f"CLI: Project ID: {project_id}, Region: {region}")
+    logger.info(f"CLI: Project ID: {project_id}, Region: {region}")
     result_message = process_commit_range(
         commit_a,
         commit_b,
@@ -176,7 +174,7 @@ def cli_range(
         interactive=interactive,
         target=target,
     )
-    logger(f"CLI: Task complete. Result:\n{result_message}")
+    logger.info(f"CLI: Task complete. Result:\n{result_message}")
 
 
 # Used for testing when running this file directly

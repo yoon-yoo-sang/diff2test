@@ -20,12 +20,13 @@ def extract_python_code_from_response(ai_response: str) -> str | None:
         The extracted Python code as a string, or None if no suitable code is found.
     """
     if not ai_response:
-        logger("[ResponseParser] Received empty AI response.")
+        logger.info("[ResponseParser] Received empty AI response.")
         return None
 
-    if ai_response.strip() == "NO_TESTS_NEEDED":
-        logger("[ResponseParser] AI response indicates no tests needed.")
-        return None
+    # Check for "NO_TEST_NEEDED" keyword first.
+    if "NO_TESTS_NEEDED" in ai_response.strip():
+        logger.info("[ResponseParser] AI response indicates no tests needed.")
+        return "NO_TESTS_NEEDED"
 
     # Regex to find Python code blocks fenced by triple backticks.
     # - Supports optional language specifiers like 'python' or 'py'.
@@ -37,32 +38,46 @@ def extract_python_code_from_response(ai_response: str) -> str | None:
     )
 
     match = code_block_pattern.search(ai_response)
+    extracted_code = None
 
     if match:
         extracted_code = match.group(1).strip()
-        logger(
+        logger.info(
             f"[ResponseParser] Extracted fenced code block (length: {len(extracted_code)})."
         )
         return extracted_code
-    else:
-        # Fallback: If no fenced block is found, and the prompt requested "only code",
-        # the entire response might be the code. This is a heuristic.
-        # We check if "```" is absent to avoid partial fence matching.
-        if "```" not in ai_response and ai_response.strip():
-            logger(
-                "[ResponseParser] No fenced code block found. Assuming entire response is code as a fallback."
-            )
-            return ai_response.strip()
 
-        logger(
-            "[ResponseParser] No Python code block found or response format not recognized."
-        )
+    # Handle cases where markdown exists but might be empty or non-python
+    if "```" in ai_response:
+        # If we are here, it means the regex did not match.
+        # This could be an empty block like ``` ``` or a non-python block.
+        # If it's just an empty block, we should return an empty string.
+        # A simple check for content between backticks can be done.
+        # This is a bit simplistic but covers the ` ``` ` case.
+        content_between_ticks = ai_response.split("```")[1]
+        if not content_between_ticks.strip() or content_between_ticks.strip().lower() == "python":
+             return ""
+        # Otherwise, it might be a different language block, so we return None.
         return None
+
+    # Fallback for no markdown at all
+    response_strip = ai_response.strip()
+    keywords = ["def ", "import ", "class ", "assert ", "@"]
+    if any(kw in response_strip for kw in keywords):
+        logger.info(
+            "[ResponseParser] No fenced block, but Python keywords found. Assuming entire response is code."
+        )
+        return response_strip
+
+    logger.info(
+        "[ResponseParser] No Python code block found or response format not recognized."
+    )
+    return None
 
 
 # --- Example Usage (for testing this module directly) ---
 if __name__ == "__main__":
-    logger("--- Testing Response Parser ---")
+    logger.info("--- Testing Response Parser ---")
 
     test_cases = [
         {

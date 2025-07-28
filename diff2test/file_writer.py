@@ -25,7 +25,7 @@ def save_test_code_to_file(
         The path string of the saved test file, or None if saving failed or test code is empty.
     """
     if not generated_test_code:
-        logger(
+        logger.info(
             f"[FileWriter] No test code provided for '{original_file_path_str}'. Skipping file save."
         )
         return None
@@ -53,12 +53,12 @@ def save_test_code_to_file(
             f.write(generated_test_code)
 
         saved_path_str = str(test_file_output_path.resolve())
-        logger(f"[FileWriter] Successfully saved test code to: {saved_path_str}")
+        logger.info(f"[FileWriter] Successfully saved test code to: {saved_path_str}")
         return saved_path_str
     except IOError as e:
-        logger(f"[FileWriter] Error saving test file '{test_file_output_path}': {e}")
+        logger.info(f"[FileWriter] Error saving test file '{test_file_output_path}': {e}")
     except Exception as e:  # Catch any other unexpected errors
-        logger(
+        logger.info(
             f"[FileWriter] An unexpected error occurred while saving '{test_file_output_path}': {e}"
         )
 
@@ -67,7 +67,7 @@ def save_test_code_to_file(
 
 # --- Example Usage (for testing this module directly) ---
 if __name__ == "__main__":
-    logger("--- Testing File Writer ---")
+    logger.info("--- Testing File Writer ---")
 
     # Dummy data for testing
     dummy_original_file1 = "src/my_module/utils.py"
@@ -86,35 +86,35 @@ if __name__ == "__main__":
     dummy_original_file3 = "single_file.py"  # Test file in root of output_dir
     dummy_test_code3 = "assert 1 == 1 # Simple test"
 
-    logger(f"\nAttempting to save test for: {dummy_original_file1}")
+    logger.info(f"\nAttempting to save test for: {dummy_original_file1}")
     path1 = save_test_code_to_file(
         dummy_original_file1, dummy_test_code1, "generated_tests_output"
     )
     if path1:
-        logger(f"Test 1 saved at: {path1}")
+        logger.info(f"Test 1 saved at: {path1}")
         # You can check the "generated_tests_output" directory in your project
 
-    logger(f"\nAttempting to save test for: {dummy_original_file2}")
+    logger.info(f"\nAttempting to save test for: {dummy_original_file2}")
     path2 = save_test_code_to_file(
         dummy_original_file2, dummy_test_code2, "generated_tests_output"
     )
     if path2:
-        logger(f"Test 2 saved at: {path2}")
+        logger.info(f"Test 2 saved at: {path2}")
 
-    logger(f"\nAttempting to save test for: {dummy_original_file3}")
+    logger.info(f"\nAttempting to save test for: {dummy_original_file3}")
     path3 = save_test_code_to_file(
         dummy_original_file3, dummy_test_code3, "generated_tests_output"
     )
     if path3:
-        logger(f"Test 3 saved at: {path3}")
+        logger.info(f"Test 3 saved at: {path3}")
 
-    logger(f"\nAttempting to save empty test code:")
+    logger.info(f"\nAttempting to save empty test code:")
     path_empty = save_test_code_to_file(
         "src/another_module.py", "", "generated_tests_output"
     )
     if path_empty is None:
-        logger("Correctly handled empty test code.")
+        logger.info("Correctly handled empty test code.")
 
-    logger(
+    logger.info(
         "\nCheck the 'generated_tests_output' directory in your project for the created files."
     )

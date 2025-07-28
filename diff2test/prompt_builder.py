@@ -69,10 +69,10 @@ if __name__ == "__main__":
         ),
     )
 
-    logger("--- Generating Prompt for Pytest ---")
+    logger.info("--- Generating Prompt for Pytest ---")
     pytest_prompt = create_test_prompt_for_diff(sample_diff_info)
-    logger(pytest_prompt)
+    logger.info(pytest_prompt)
 
-    # logger("\n--- Generating Prompt for Unittest (example) ---")
+    # logger.info("\n--- Generating Prompt for Unittest (example) ---")
     # unittest_prompt = create_test_prompt_for_diff(sample_diff_info, test_framework="unittest")
-    # logger(unittest_prompt)
+    # logger.info(unittest_prompt)

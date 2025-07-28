@@ -25,8 +25,8 @@ def process_current_changes(
     """
     Generates tests for changes from the last commit to the current state (simulation).
     """
-    logger(f"[Library] Processing current changes...")
-    logger(f"[Library] Using Vertex AI Project ID: {project_id}, Region: {region}")
+    logger.info(f"[Library] Processing current changes...")
+    logger.info(f"[Library] Using Vertex AI Project ID: {project_id}, Region: {region}")
     diff_infos = get_current_changes(target=target)
     _process_diff_infos(project_id, region, diff_infos, output_dir, interactive)
 
@@ -43,8 +43,8 @@ def process_commit_range(
     """
     Generates tests for changes between two commits (simulation).
     """
-    logger(f"[Library] Processing changes between {commit_a} and {commit_b}...")
-    logger(f"[Library] Using Vertex AI Project ID: {project_id}, Region: {region}")
+    logger.info(f"[Library] Processing changes between {commit_a} and {commit_b}...")
+    logger.info(f"[Library] Using Vertex AI Project ID: {project_id}, Region: {region}")
     diff_infos = get_diff_between_commits(commit_a, commit_b, target=target)
     _process_diff_infos(project_id, region, diff_infos, output_dir, interactive)
 
@@ -80,15 +80,15 @@ def orchestrate_test_generation(
     saved_file_paths = []
 
     for i, diff_info in enumerate(diff_infos):
-        logger(
+        logger.info(
             f"\n--- Processing file {i + 1}/{len(diff_infos)}: {diff_info.file_path} ---"
         )
 
         if interactive:
-            logger("\nDiff content:")
-            logger("--------------------------------------------------")
-            logger(diff_info.diff_content)
-            logger("--------------------------------------------------")
+            logger.info("\nDiff content:")
+            logger.info("--------------------------------------------------")
+            logger.info(diff_info.diff_content)
+            logger.info("--------------------------------------------------")
 
             while True:
                 choice = input(
@@ -98,13 +98,13 @@ def orchestrate_test_generation(
                     if choice == "":
                         choice = "n"
                     break
-                logger("Invalid input. Please enter 'y', 'n', or 'q'.")
+                logger.info("Invalid input. Please enter 'y', 'n', or 'q'.")
 
             if choice == "n":
-                logger(f"Skipping test generation for {diff_info.file_path}")
+                logger.info(f"Skipping test generation for {diff_info.file_path}")
                 continue
             elif choice == "q":
-                logger("Operation aborted by user.")
+                logger.info("Operation aborted by user.")
                 break
 
         prompt = create_test_prompt_for_diff(diff_info)
@@ -122,16 +122,16 @@ def orchestrate_test_generation(
                 if saved_path:
                     saved_file_paths.append(saved_path)
             else:
-                logger(f"\n# Suggested tests for: {diff_info.file_path}")
-                logger("# --------------------------------------------------")
-                logger(generated_code)
-                logger("# --------------------------------------------------\n")
+                logger.info(f"\n# Suggested tests for: {diff_info.file_path}")
+                logger.info("# --------------------------------------------------")
+                logger.info(generated_code)
+                logger.info("# --------------------------------------------------\n")
         else:
-            logger(f"No test code could be generated for: {diff_info.file_path}")
+            logger.info(f"No test code could be generated for: {diff_info.file_path}")
 
     if output_dir:
-        logger(
+        logger.info(
             f"\nProcessed {processed_files_count} files. Tests saved to '{output_dir}'."
         )
     else:
-        logger(f"\nProcessed {processed_files_count} files.")
+        logger.info(f"\nProcessed {processed_files_count} files.")
